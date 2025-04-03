@@ -5,7 +5,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class FroggerFrame extends JFrame {
+public class FroggerMain extends JFrame {
     private int frogX, frogY;
     private final int MOVE_STEP = 57;
     private final int MOVE_HORIZONTAL = 40;
@@ -29,10 +29,19 @@ public class FroggerFrame extends JFrame {
     private ArrayList<JLabel> movingCars3 = new ArrayList<>();
     private ArrayList<JLabel> movingCars4 = new ArrayList<>();
     private ArrayList<JLabel> movingCars5 = new ArrayList<>();
-    private Timer spawnTimer1;
-    private Timer moveCarsTimer1;
+    private ArrayList<JLabel> movingLogs1 = new ArrayList<>();
+    private ArrayList<JLabel> movingLogs2 = new ArrayList<>();
+    private ArrayList<JLabel> movingLogs3 = new ArrayList<>();
     private Timer spawnTimer2;
     private Timer moveCarsTimer2;
+    private Timer spawnTimer1;
+    private Timer moveCarsTimer1;
+    private Timer moveLogsTimer1;
+    private Timer spawnLogTimer1;
+    private Timer moveLogsTimer2;
+    private Timer spawnLogTimer2;
+    private Timer moveLogsTimer3;
+    private Timer spawnLogTimer3;
     private Timer spawnTimer3;
     private Timer moveCarsTimer3;
     private Timer spawnTimer4;
@@ -44,6 +53,8 @@ public class FroggerFrame extends JFrame {
     private final int CAR_SPEED3 = 10;
     private final int CAR_SPEED4 = 7;
     private final int CAR_SPEED5 = 10;
+    private final int LOG_SPEED = 7;
+    private boolean notSafe = true;
     private String[] carImages = {
             "Images/18WheelerRight.png",
             "Images/LimoRight.png",
@@ -56,11 +67,16 @@ public class FroggerFrame extends JFrame {
             "Images/NormalCarLeft.png",
             "Images/SportsCarLeft.png"
     };
+    private String[] logImages = {
+            "Images/LogImage1.png",
+            "Images/LogImage2.png",
+            "Images/LogImage3.png"
+    };
     public boolean isAlive = false;
     private boolean isInvincible = false;
     private final int INVINCIBILITY_DURATION = 1000;
 
-    public FroggerFrame() {
+    public FroggerMain() {
         setTitle("Frogger Test");
         setSize(1165, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -177,15 +193,268 @@ public class FroggerFrame extends JFrame {
                             gameOver("Win");
                         }
                     }
+
+                    if (frogY > 60 && frogY < 300 && notSafe) {
+//                        new Thread(() -> {
+//                            try {
+//                                Thread.sleep(200);
+//                            } catch (InterruptedException e1) {
+//                                e1.printStackTrace();
+//                            }
+//                            loseLife("Hit");
+//                        }).start();
+                        //loseLife("Hit");
+                    }
                 }
 
             }
         });
         startCarMovement();
+        logMovement();
 
 
         setVisible(true);
         startTimer();
+    }
+    private void logMovement() {
+        moveLogsTimer1 = new Timer(50, _ -> moveLogs1());
+        moveLogsTimer1.start();
+        spawnLogTimer1 = new Timer(3000, _ -> spawnLogs1());
+        spawnLogTimer1.start();
+
+        Timer delayTimer2 = new Timer(2000, _ -> {
+            moveLogsTimer2 = new Timer(50, _ -> moveLogs2());
+            moveLogsTimer2.start();
+            spawnLogTimer2 = new Timer(2900, _ -> spawnLogs2());
+            spawnLogTimer2.start();
+        });
+        delayTimer2.setRepeats(false);
+        delayTimer2.start();
+
+        Timer delayTimer1 = new Timer(1000, _ -> {
+            moveLogsTimer3 = new Timer(50, _ -> moveLogs3());
+            moveLogsTimer3.start();
+            spawnLogTimer3 = new Timer(3100, _ -> spawnLogs3());
+            spawnLogTimer3.start();
+        });
+        delayTimer1.setRepeats(false);
+        delayTimer1.start();
+    }
+
+    private void spawnLogs1() {
+        Random rand = new Random();
+        int randomLogIndex = rand.nextInt(3);
+        String logPath = logImages[randomLogIndex];
+
+        System.out.println("Spawning car at index: " + randomLogIndex);
+        JLabel logLabel = new JLabel();
+        if(randomLogIndex==0){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(250, 125, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 36;
+            logLabel.setBounds(-250, laneY, 300, 115);
+        }
+        if(randomLogIndex==1){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(200, 100, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 20;
+            logLabel.setBounds(-250, laneY, 300, 155);
+        }
+        if(randomLogIndex==2){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(250, 100, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 55;
+            logLabel.setBounds(-250, laneY, 250, 70);
+        }
+
+
+        bgLabel.add(logLabel);
+        movingLogs1.add(logLabel);
+
+        System.out.println("Total cars: " + movingLogs1.size());
+
+        revalidate();
+        repaint();
+    }
+    private void moveLogs1() {
+        //System.out.println(lives);
+        for (int i = movingLogs1.size() - 1; i >= 0; i--) {
+            JLabel log = movingLogs1.get(i);
+            log.setLocation(log.getX() + LOG_SPEED, log.getY());
+
+            Rectangle frogBounds = new Rectangle(frogLabel.getBounds());
+            frogBounds.grow(0, -32);
+
+            Rectangle logBounds = log.getBounds();
+            logBounds.grow(0,-35);
+            //System.out.println("Frog Bounds: " + frogBounds);
+            //System.out.println("Car Bounds: " + carBounds);
+
+
+            if(frogBounds.intersects(log.getBounds())){
+                System.out.println("Touch!!!");
+            }
+//            int topR = 462-20;
+//            int bottomR = 462+30;
+//            //System.out.println("Frog's Y " + frogLabel.getY());
+//            if (!isInvincible && frogBounds.intersects(logBounds.getBounds()) && frogLabel.getY()>topR && frogLabel.getY() <bottomR) {
+//                System.out.println("Collision detected precisely!");
+//                loseLife("Hit");
+//            }
+
+            if (log.getX() > SCREEN_WIDTH) {
+                remove(log);
+                movingLogs1.remove(i);
+            }
+        }
+        repaint();
+    }
+
+    private void spawnLogs2() {
+        Random rand = new Random();
+        int randomLogIndex = rand.nextInt(3);
+        String logPath = logImages[randomLogIndex];
+
+        System.out.println("Spawning car at index: " + randomLogIndex);
+        JLabel logLabel = new JLabel();
+        if(randomLogIndex==0){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(250, 125, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 36+167;
+            logLabel.setBounds(-250, laneY, 300, 115);
+        }
+        if(randomLogIndex==1){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(200, 100, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 20+167;
+            logLabel.setBounds(-250, laneY, 300, 155);
+        }
+        if(randomLogIndex==2){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(250, 100, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 55+169;
+            logLabel.setBounds(-250, laneY, 250, 70);
+        }
+
+
+        bgLabel.add(logLabel);
+        movingLogs2.add(logLabel);
+
+        System.out.println("Total cars: " + movingLogs2.size());
+
+        revalidate();
+        repaint();
+    }
+    private void moveLogs2() {
+        //System.out.println(lives);
+        for (int i = movingLogs2.size() - 1; i >= 0; i--) {
+            JLabel log = movingLogs2.get(i);
+            log.setLocation(log.getX() + LOG_SPEED, log.getY());
+
+            Rectangle frogBounds = new Rectangle(frogLabel.getBounds());
+            frogBounds.grow(0, -32);
+
+            Rectangle logBounds = log.getBounds();
+            logBounds.grow(0,-35);
+            //System.out.println("Frog Bounds: " + frogBounds);
+            //System.out.println("Car Bounds: " + carBounds);
+
+
+            if(frogBounds.intersects(log.getBounds())){
+                System.out.println("Touch!!!");
+            }
+//            int topR = 462-20;
+//            int bottomR = 462+30;
+//            //System.out.println("Frog's Y " + frogLabel.getY());
+//            if (!isInvincible && frogBounds.intersects(logBounds.getBounds()) && frogLabel.getY()>topR && frogLabel.getY() <bottomR) {
+//                System.out.println("Collision detected precisely!");
+//                loseLife("Hit");
+//            }
+
+            if (log.getX() > SCREEN_WIDTH) {
+                remove(log);
+                movingLogs2.remove(i);
+            }
+        }
+        repaint();
+    }
+
+    private void spawnLogs3() {
+        Random rand = new Random();
+        int randomLogIndex = rand.nextInt(3);
+        String logPath = logImages[randomLogIndex];
+
+        System.out.println("Spawning car at index: " + randomLogIndex);
+        JLabel logLabel = new JLabel();
+        if(randomLogIndex==0){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(250, 125, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 36+110;
+            logLabel.setBounds(-250, laneY, 300, 115);
+        }
+        if(randomLogIndex==1){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(200, 100, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 20+110;
+            logLabel.setBounds(-250, laneY, 300, 155);
+        }
+        if(randomLogIndex==2){
+            ImageIcon logIcon = new ImageIcon(logPath);
+            Image logImage = logIcon.getImage().getScaledInstance(250, 100, Image.SCALE_SMOOTH);
+            logLabel = new JLabel(new ImageIcon(logImage));
+            int laneY = 55+110;
+            logLabel.setBounds(-250, laneY, 250, 70);
+        }
+
+
+        bgLabel.add(logLabel);
+        movingLogs3.add(logLabel);
+
+        System.out.println("Total cars: " + movingLogs3.size());
+
+        revalidate();
+        repaint();
+    }
+    private void moveLogs3() {
+        //System.out.println(lives);
+        for (int i = movingLogs3.size() - 1; i >= 0; i--) {
+            JLabel log = movingLogs3.get(i);
+            log.setLocation(log.getX() + LOG_SPEED, log.getY());
+
+            Rectangle frogBounds = new Rectangle(frogLabel.getBounds());
+            frogBounds.grow(0, -32);
+
+            Rectangle logBounds = log.getBounds();
+            logBounds.grow(0,-35);
+            //System.out.println("Frog Bounds: " + frogBounds);
+            //System.out.println("Car Bounds: " + carBounds);
+
+
+            if(frogBounds.intersects(log.getBounds())){
+                System.out.println("Touch!!!");
+            }
+//            int topR = 462-20;
+//            int bottomR = 462+30;
+//            //System.out.println("Frog's Y " + frogLabel.getY());
+//            if (!isInvincible && frogBounds.intersects(logBounds.getBounds()) && frogLabel.getY()>topR && frogLabel.getY() <bottomR) {
+//                System.out.println("Collision detected precisely!");
+//                loseLife("Hit");
+//            }
+
+            if (log.getX() > SCREEN_WIDTH) {
+                remove(log);
+                movingLogs3.remove(i);
+            }
+        }
+        repaint();
     }
 
     private void startCarMovement() {
@@ -762,6 +1031,9 @@ public class FroggerFrame extends JFrame {
         movingCars3.clear();
         movingCars4.clear();
         movingCars5.clear();
+        movingLogs1.clear();
+        movingLogs2.clear();
+        movingLogs3.clear();
         moveCarsTimer1.stop();
         spawnTimer1.stop();
         moveCarsTimer2.stop();
@@ -772,7 +1044,14 @@ public class FroggerFrame extends JFrame {
         spawnTimer4.stop();
         moveCarsTimer5.stop();
         spawnTimer5.stop();
+        moveLogsTimer1.stop();
+        spawnLogTimer1.stop();
+        moveLogsTimer2.stop();
+        spawnLogTimer2.stop();
+        moveLogsTimer3.stop();
+        spawnLogTimer3.stop();
         startCarMovement();
+        logMovement();
 
         bgLabel.removeAll();
         bgLabel.add(frogLabel);
@@ -790,6 +1069,6 @@ public class FroggerFrame extends JFrame {
 
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(FroggerFrame::new);
+        SwingUtilities.invokeLater(FroggerMain::new);
     }
 }
